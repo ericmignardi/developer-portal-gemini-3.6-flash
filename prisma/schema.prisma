@@ -1,0 +1,254 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProjectStatus {
+  IDEA
+  ACTIVE
+  PAUSED
+  SHIPPED
+  ARCHIVED
+}
+
+enum Platform {
+  VERCEL
+  NEON
+  LOCAL
+  OTHER
+}
+
+enum EnvironmentType {
+  PRODUCTION
+  PREVIEW
+  DEVELOPMENT
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  BLOCKED
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ResourceType {
+  ARTICLE
+  DOCS
+  VIDEO
+  TOOL
+  REPO
+  OTHER
+}
+
+enum LearningStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  name        String
+  slug        String        @unique
+  client      String?
+  description String?       @db.Text
+  status      ProjectStatus @default(ACTIVE)
+  repoUrl     String?
+  liveUrl     String?
+  techStack   String[]      @default([])
+  isPinned    Boolean       @default(false)
+  startedAt   DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  environments   Environment[]
+  tasks          Task[]
+  snippets       Snippet[]
+  resources      Resource[]
+  journalEntries JournalEntry[]
+  tags           TagOnProject[]
+
+  @@index([status])
+  @@index([isPinned])
+}
+
+model Environment {
+  id        String          @id @default(cuid())
+  projectId String
+  project   Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name      String
+  platform  Platform        @default(OTHER)
+  type      EnvironmentType @default(DEVELOPMENT)
+  branch    String?
+  url       String?
+  notes     String?         @db.Text
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([projectId])
+  @@index([type])
+}
+
+model Task {
+  id          String       @id @default(cuid())
+  title       String
+  description String?      @db.Text
+  status      TaskStatus   @default(TODO)
+  priority    TaskPriority @default(MEDIUM)
+  dueDate     DateTime?
+  projectId   String?
+  project     Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  order       Int          @default(0)
+  completedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([projectId])
+  @@index([status])
+  @@index([priority])
+  @@index([dueDate])
+}
+
+model Snippet {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  language    String   @default("typescript")
+  code        String   @db.Text
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  isFavorite  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tags TagOnSnippet[]
+
+  @@index([projectId])
+  @@index([language])
+  @@index([isFavorite])
+}
+
+model Resource {
+  id          String       @id @default(cuid())
+  title       String
+  url         String
+  description String?      @db.Text
+  type        ResourceType @default(OTHER)
+  projectId   String?
+  project     Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  isRead      Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  tags TagOnResource[]
+
+  @@index([projectId])
+  @@index([type])
+  @@index([isRead])
+}
+
+model JournalEntry {
+  id        String   @id @default(cuid())
+  title     String?
+  content   String   @db.Text
+  entryDate DateTime @default(now())
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tags TagOnJournalEntry[]
+
+  @@index([projectId])
+  @@index([entryDate])
+}
+
+model LearningGoal {
+  id          String         @id @default(cuid())
+  title       String
+  description String?        @db.Text
+  targetDate  DateTime?
+  status      LearningStatus @default(NOT_STARTED)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  courses Course[]
+
+  @@index([status])
+}
+
+model Course {
+  id              String          @id @default(cuid())
+  title           String
+  provider        String?
+  url             String?
+  status          LearningStatus  @default(NOT_STARTED)
+  progressPercent Int             @default(0)
+  learningGoalId  String?
+  learningGoal    LearningGoal?   @relation(fields: [learningGoalId], references: [id], onDelete: SetNull)
+  notes           String?         @db.Text
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([learningGoalId])
+  @@index([status])
+}
+
+model Tag {
+  id    String @id @default(cuid())
+  name  String @unique
+  color String
+
+  projects       TagOnProject[]
+  snippets       TagOnSnippet[]
+  resources      TagOnResource[]
+  journalEntries TagOnJournalEntry[]
+}
+
+model TagOnProject {
+  projectId String
+  tagId     String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, tagId])
+}
+
+model TagOnSnippet {
+  snippetId String
+  tagId     String
+  snippet   Snippet @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([snippetId, tagId])
+}
+
+model TagOnResource {
+  resourceId String
+  tagId      String
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([resourceId, tagId])
+}
+
+model TagOnJournalEntry {
+  journalEntryId String
+  tagId          String
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  tag            Tag          @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([journalEntryId, tagId])
+}

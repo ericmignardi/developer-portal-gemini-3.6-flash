@@ -1,36 +1,100 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Atlas — Personal Developer Portal
 
-## Getting Started
+Atlas is a personal developer portal designed for freelance and contract developers running multiple client applications concurrently. It consolidates scattered Vercel preview deployments, Neon database branches, tasks, code snippets, bookmarked resources, dev journal entries, and learning goals into a single local dashboard on localhost.
 
-First, run the development server:
+## Technology Stack
+
+- **Framework**: Next.js (App Router, Server Components & Client Components, Strict TypeScript)
+- **UI & Styling**: React 19, TailwindCSS, Lucide Icons, Custom SVGs
+- **Animation**: Motion (`motion` package) for smooth page transitions and micro-interactions
+- **Validation**: Zod (schemas shared between client forms and REST API handlers)
+- **Client State**: Zustand with persistent storage (`store/useUIStore.ts`)
+- **Database & ORM**: PostgreSQL 16 (via Docker Compose) & Prisma v6 with committed schema and seed script
+
+---
+
+## Quick Start (Clean Setup)
+
+Follow these steps from a fresh clone:
 
 ```bash
+# 1. Start PostgreSQL 16 container
+docker compose up -d
+
+# 2. Install dependencies
+npm install
+
+# 3. Apply database migrations
+npx prisma migrate dev
+
+# 4. Seed the database with rich sample data
+npx prisma db seed
+
+# 5. Run local development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Architectural Decisions
 
-## Learn More
+1. **Explicit Many-to-Many Join Tables**:
+   - `Tag` is linked across `Project`, `Snippet`, `Resource`, and `JournalEntry` via explicit join models (`TagOnProject`, `TagOnSnippet`, `TagOnResource`, `TagOnJournalEntry`) rather than string arrays. This ensures case-insensitive deduplication, strict referential integrity, and efficient relational querying.
 
-To learn more about Next.js, take a look at the following resources:
+2. **REST API Contract & Validation Scoping**:
+   - All REST routes under `/api/*` conform strictly to PRD §8 requirements. Inputs are parsed through Zod validation schemas in `lib/validations/`, returning standardized JSON responses `{ error: string, fields?: Record<string, string[]> }` with `400 Bad Request` on invalid payloads.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. **Client State & Persistence**:
+   - Zustand (`store/useUIStore.ts`) manages global interactive states including collapsible sidebar, toast notifications, confirmation dialogs, quick-add modal, and persistent task view preferences (Board vs. List).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. **Light-Themed Code Block Aesthetics**:
+   - Per PRD §10 visual requirements, code blocks strictly use a GitHub Light syntax theme with copy-to-clipboard feedback.
 
-## Deploy on Vercel
+5. **Learning Goal Progress Rollup**:
+   - Learning goal completion percentages are dynamically calculated as the mean `progressPercent` of nested courses. For goals with zero courses, the progress safely defaults to `0%` (preventing `NaN` edge cases).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+6. **Optional GitHub Integration**:
+   - `/api/github` fetches recent commits and open pull requests when `repoUrl` is present. It degrades gracefully without crashing if `GITHUB_TOKEN` is absent, unreachable, or rate-limited.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Project Structure
+
+```
+gemini/
+├── app/
+│   ├── api/                # REST API route handlers (/api/projects, /api/tasks, etc.)
+│   ├── projects/           # Project list & detail views (/projects, /projects/[slug])
+│   ├── tasks/              # Task board and list view (/tasks)
+│   ├── snippets/           # Code snippet library (/snippets)
+│   ├── resources/          # Bookmark library (/resources)
+│   ├── journal/            # Dev log entries (/journal, /journal/[id])
+│   ├── learning/           # Goals and courses (/learning)
+│   ├── globals.css         # Base styles & light scrollbar configuration
+│   ├── layout.tsx          # Root shell layout with persistent sidebar & header
+│   └── page.tsx            # Dashboard overview page
+├── components/
+│   ├── layout/             # Sidebar, Header, QuickAddModal, PageWrapper
+│   ├── ui/                 # Shared primitives (Button, Card, Modal, CodeHighlight, etc.)
+│   ├── states/             # Reusable LoadingState, EmptyState, ErrorState
+│   ├── projects/           # Project management modals & components
+│   ├── environments/       # Environment grouping & copy-to-clipboard tools
+│   ├── tasks/              # Task modals & card components
+│   ├── snippets/           # Snippet modal components
+│   ├── resources/          # Resource modal components
+│   ├── journal/            # Journal modal components
+│   └── learning/           # Goal & course modals
+├── lib/
+│   ├── prisma.ts           # Singleton Prisma Client for HMR
+│   ├── utils.ts            # Formatting, classnames, and slugify helpers
+│   ├── api-response.ts     # Standardized JSON error response handler
+│   └── validations/        # Zod validation schemas for all entities
+├── prisma/
+│   ├── schema.prisma       # Prisma 9-entity relational data model
+│   └── seed.ts             # Rich seed script with 5 projects & full sample data
+├── docker-compose.yml      # PostgreSQL 16 container service definition
+├── README.md               # Setup and architectural documentation
+└── PLAN.md                 # Execution plan and progress log
+```
