@@ -1,4 +1,4 @@
-import { PrismaClient, ProjectStatus, Platform, EnvironmentType, TaskStatus, TaskPriority, ResourceType, LearningStatus } from "@prisma/client";
+import { PrismaClient, ProjectStatus, Platform, EnvironmentType, TaskStatus, TaskPriority } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -6,15 +6,11 @@ async function main() {
   console.log("Cleaning existing database...");
   await prisma.tagOnProject.deleteMany();
   await prisma.tagOnSnippet.deleteMany();
-  await prisma.tagOnResource.deleteMany();
   await prisma.tagOnJournalEntry.deleteMany();
   await prisma.environment.deleteMany();
   await prisma.task.deleteMany();
   await prisma.snippet.deleteMany();
-  await prisma.resource.deleteMany();
   await prisma.journalEntry.deleteMany();
-  await prisma.course.deleteMany();
-  await prisma.learningGoal.deleteMany();
   await prisma.tag.deleteMany();
   await prisma.project.deleteMany();
 
@@ -466,110 +462,6 @@ alias gcb="git checkout -b"`,
     });
   }
 
-  console.log("Creating Resources...");
-  const resourcesData = [
-    {
-      title: "Next.js App Router Documentation",
-      url: "https://nextjs.org/docs/app",
-      description: "Official guide to Server Components, Layouts, and Data Fetching.",
-      type: ResourceType.DOCS,
-      projectId: p1.id,
-      isRead: true,
-      tags: [tags["nextjs"].id, tags["react"].id],
-    },
-    {
-      title: "Neon Database Branching Workflows",
-      url: "https://neon.tech/docs/conceptual-guides/branching",
-      description: "How to integrate database branching into GitHub pull request CI/CD.",
-      type: ResourceType.ARTICLE,
-      projectId: p1.id,
-      isRead: false,
-      tags: [tags["neon"].id, tags["postgres"].id],
-    },
-    {
-      title: "Prisma Schema Best Practices & Performance Optimization",
-      url: "https://www.prisma.io/docs/guides/performance-and-optimization",
-      description: "Indexes, explicit m2m join tables, and query tuning.",
-      type: ResourceType.DOCS,
-      projectId: p1.id,
-      isRead: true,
-      tags: [tags["prisma"].id, tags["typescript"].id],
-    },
-    {
-      title: "TailwindCSS v4 Migration Guide",
-      url: "https://tailwindcss.com/docs/v4-beta",
-      description: "Overview of CSS-first configuration and new performance improvements.",
-      type: ResourceType.DOCS,
-      projectId: p4.id,
-      isRead: false,
-      tags: [tags["tailwind"].id],
-    },
-    {
-      title: "Mastering React 19 Server Actions & Optimistic Updates",
-      url: "https://react.dev/reference/rsc/server-actions",
-      description: "Deep dive into useActionState and useOptimistic hook patterns.",
-      type: ResourceType.ARTICLE,
-      projectId: p2.id,
-      isRead: false,
-      tags: [tags["react"].id, tags["nextjs"].id],
-    },
-    {
-      title: "Framer Motion Layout Animations & Shared Element Transitions",
-      url: "https://motion.dev/docs/react-animation",
-      description: "Tutorial on liquid smooth enter/exit animations and reordering.",
-      type: ResourceType.VIDEO,
-      projectId: p4.id,
-      isRead: true,
-      tags: [tags["react"].id],
-    },
-    {
-      title: "Lucide Icon Library Explorer",
-      url: "https://lucide.dev/icons/",
-      description: "Searchable database of clean, consistent vector icons for React.",
-      type: ResourceType.TOOL,
-      isRead: true,
-      tags: [tags["react"].id],
-    },
-    {
-      title: "Zod Schema Validation Deep Dive",
-      url: "https://zod.dev/",
-      description: "TypeScript-first schema validation with type inference.",
-      type: ResourceType.DOCS,
-      isRead: true,
-      tags: [tags["typescript"].id],
-    },
-    {
-      title: "GitHub Actions for Neon Database Branching",
-      url: "https://github.com/neondatabase/create-branch-action",
-      description: "Automate ephemeral database branch creation on pull requests.",
-      type: ResourceType.REPO,
-      projectId: p2.id,
-      isRead: false,
-      tags: [tags["neon"].id, tags["vercel"].id],
-    },
-    {
-      title: "Web Vitals & Performance Monitoring in 2026",
-      url: "https://web.dev/vitals/",
-      description: "Understanding INP, LCP, and CLS performance metrics.",
-      type: ResourceType.ARTICLE,
-      projectId: p1.id,
-      isRead: false,
-      tags: [tags["performance"].id],
-    },
-  ];
-
-  for (const r of resourcesData) {
-    const { tags: resourceTagIds, ...rest } = r;
-    await prisma.resource.create({
-      data: {
-        ...rest,
-        tags: {
-          create: resourceTagIds.map((tagId) => ({ tagId })),
-        },
-      },
-    });
-  }
-
   console.log("Creating Journal Entries...");
   const journalData = [
     {
@@ -662,105 +554,6 @@ Key architectural goal: **Kill the context switching cost.** Having projects, en
         },
       },
     });
-  }
-
-  console.log("Creating Learning Goals & Courses...");
-  const g1 = await prisma.learningGoal.create({
-    data: {
-      title: "Master Rust for Systems & WebAssembly",
-      description: "Build deep understanding of memory safety, borrow checker, and WASM integration.",
-      targetDate: new Date("2026-10-31"),
-      status: LearningStatus.IN_PROGRESS,
-    },
-  });
-
-  const g2 = await prisma.learningGoal.create({
-    data: {
-      title: "Deep Dive into Vector Databases & LLM RAG Pipelines",
-      description: "Learn pgvector, embeddings generation, chunking strategies, and hybrid search.",
-      targetDate: new Date("2026-09-15"),
-      status: LearningStatus.IN_PROGRESS,
-    },
-  });
-
-  const g3 = await prisma.learningGoal.create({
-    data: {
-      title: "Advanced Web Performance & Distributed Tracing",
-      description: "Understand eBPF, OpenTelemetry, Core Web Vitals, and browser rendering pipeline.",
-      targetDate: new Date("2026-12-01"),
-      status: LearningStatus.NOT_STARTED,
-    },
-  });
-
-  const coursesData = [
-    {
-      title: "Ultimate Rust Foundations",
-      provider: "Frontend Masters",
-      url: "https://frontendmasters.com/courses/rust/",
-      status: LearningStatus.COMPLETED,
-      progressPercent: 100,
-      learningGoalId: g1.id,
-      notes: "Finished all exercises and built CLI file watcher.",
-    },
-    {
-      title: "Practical Systems Programming in Rust",
-      provider: "Udemy",
-      url: "https://udemy.com/course/rust-systems",
-      status: LearningStatus.IN_PROGRESS,
-      progressPercent: 45,
-      learningGoalId: g1.id,
-      notes: "Currently working through async tokio network server chapter.",
-    },
-    {
-      title: "Building Production RAG Systems with Python & Postgres",
-      provider: "DeepLearning.AI",
-      url: "https://deeplearning.ai/courses/rag-postgres",
-      status: LearningStatus.IN_PROGRESS,
-      progressPercent: 75,
-      learningGoalId: g2.id,
-      notes: "Great module on semantic re-ranking with Cohere.",
-    },
-    {
-      title: "Vector Search Foundations with pgvector",
-      provider: "Neon Academy",
-      url: "https://neon.tech/academy/pgvector",
-      status: LearningStatus.COMPLETED,
-      progressPercent: 100,
-      learningGoalId: g2.id,
-      notes: "Learned HNSW vs IVFFlat indexing trade-offs.",
-    },
-    {
-      title: "Web Vitals Masterclass",
-      provider: "Web.dev",
-      url: "https://web.dev/learn/performance",
-      status: LearningStatus.NOT_STARTED,
-      progressPercent: 0,
-      learningGoalId: g3.id,
-      notes: "Plan to start next month after RAG pipeline work.",
-    },
-    // Standalone course unattached to any goal (PRD §7.9 requirement!)
-    {
-      title: "TypeScript Magic: Advanced Type System Patterns",
-      provider: "Total TypeScript",
-      url: "https://totaltypescript.com",
-      status: LearningStatus.IN_PROGRESS,
-      progressPercent: 60,
-      learningGoalId: null,
-      notes: "Standalone deep dive into conditional types and template literal types.",
-    },
-    {
-      title: "CSS Grid & Flexbox Masterclass",
-      provider: "Wes Bos",
-      url: "https://cssgrid.io",
-      status: LearningStatus.COMPLETED,
-      progressPercent: 100,
-      learningGoalId: null,
-      notes: "Quick reference refresher course.",
-    },
-  ];
-
-  for (const c of coursesData) {
-    await prisma.course.create({ data: c });
   }
 
   console.log("Seeding complete successfully!");

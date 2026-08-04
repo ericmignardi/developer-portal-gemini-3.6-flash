@@ -50,7 +50,6 @@ export async function GET(req: NextRequest) {
             tasks: true,
             environments: true,
             snippets: true,
-            resources: true,
             journalEntries: true,
           },
         },

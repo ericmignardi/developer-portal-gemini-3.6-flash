@@ -42,7 +42,6 @@ interface ProjectItem {
     environments: number;
     tasks: number;
     snippets: number;
-    resources: number;
     journalEntries: number;
   };
 }

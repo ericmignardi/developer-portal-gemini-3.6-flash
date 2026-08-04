@@ -19,7 +19,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Atlas — Personal Developer Portal",
-  description: "A personal developer portal for managing multi-project client applications, environments, tasks, snippets, resources, and dev log.",
+  description: "A personal developer portal for managing multi-project client applications, environments, tasks, snippets, and dev log.",
 };
 
 export default function RootLayout({

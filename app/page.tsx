@@ -16,9 +16,7 @@ import {
   FolderGit2,
   CheckSquare,
   Code2,
-  Bookmark,
   BookOpen,
-  GraduationCap,
   AlertCircle,
   Clock,
   Pin,
@@ -47,10 +45,9 @@ export default function DashboardPage() {
     activeProjects: 0,
     openTasks: 0,
     snippets: 0,
-    unreadResources: 0,
+    journalEntries: 0,
   });
   const [recentJournal, setRecentJournal] = useState<any | null>(null);
-  const [learningGoals, setLearningGoals] = useState<any[]>([]);
   const [isFreshDb, setIsFreshDb] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,31 +57,27 @@ export default function DashboardPage() {
       setIsLoading(true);
       setError(null);
 
-      const [pRes, tRes, sRes, rRes, jRes, gRes] = await Promise.all([
+      const [pRes, tRes, sRes, jRes] = await Promise.all([
         fetch("/api/projects"),
         fetch("/api/tasks"),
         fetch("/api/snippets"),
-        fetch("/api/resources"),
         fetch("/api/journal"),
-        fetch("/api/learning/goals"),
       ]);
 
-      if (!pRes.ok || !tRes.ok || !sRes.ok || !rRes.ok || !jRes.ok || !gRes.ok) {
+      if (!pRes.ok || !tRes.ok || !sRes.ok || !jRes.ok) {
         throw new Error("Failed to load dashboard statistics");
       }
 
       const allProjects = await pRes.json();
       const allTasks = await tRes.json();
       const allSnippets = await sRes.json();
-      const allResources = await rRes.json();
       const allJournal = await jRes.json();
-      const allGoals = await gRes.json();
 
       if (
         allProjects.length === 0 &&
         allTasks.length === 0 &&
         allSnippets.length === 0 &&
-        allResources.length === 0
+        allJournal.length === 0
       ) {
         setIsFreshDb(true);
       } else {
@@ -98,13 +91,12 @@ export default function DashboardPage() {
       // Counts
       const activeCount = allProjects.filter((p: any) => p.status === "ACTIVE").length;
       const openTaskCount = allTasks.filter((t: any) => t.status !== "DONE").length;
-      const unreadResCount = allResources.filter((r: any) => !r.isRead).length;
 
       setCounts({
         activeProjects: activeCount,
         openTasks: openTaskCount,
         snippets: allSnippets.length,
-        unreadResources: unreadResCount,
+        journalEntries: allJournal.length,
       });
 
       // Needs Attention tasks sorting: overdue tasks first, then due today, then due within 7 days
@@ -142,9 +134,6 @@ export default function DashboardPage() {
 
       // Most recent journal entry
       setRecentJournal(allJournal.length > 0 ? allJournal[0] : null);
-
-      // Learning goals in progress
-      setLearningGoals(allGoals.filter((g: any) => g.status === "IN_PROGRESS"));
     } catch (err: any) {
       setError(err.message || "Failed to load dashboard");
     } finally {
@@ -245,14 +234,14 @@ export default function DashboardPage() {
         </Card>
 
         <Card className="flex items-center gap-4 p-4 border-slate-200">
-          <div className="p-3 rounded-xl bg-amber-50 text-amber-600 shrink-0">
-            <Bookmark className="w-5 h-5" />
+          <div className="p-3 rounded-xl bg-purple-50 text-purple-600 shrink-0">
+            <BookOpen className="w-5 h-5" />
           </div>
           <div>
             <span className="text-2xl font-bold text-slate-900 font-mono tracking-tight">
-              {counts.unreadResources}
+              {counts.journalEntries}
             </span>
-            <p className="text-xs text-slate-500 font-medium">Unread Resources</p>
+            <p className="text-xs text-slate-500 font-medium">Dev Log Entries</p>
           </div>
         </Card>
       </div>
@@ -330,7 +319,7 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* Needs Attention Panel (PRD §7.2) */}
+          {/* Needs Attention Panel */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -416,9 +405,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Right Sidebar: Recent Journal Entry & Learning Goals Rollup */}
+        {/* Right Sidebar: Recent Journal Entry & Quick Actions */}
         <div className="space-y-6">
-          {/* Recent Journal Entry (PRD §7.2) */}
+          {/* Recent Journal Entry */}
           <Card className="space-y-3">
             <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
@@ -453,43 +442,6 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <p className="text-xs text-slate-400 italic">No journal entries written yet.</p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Learning Goals Rollup Panel (PRD §7.2) */}
-          <Card className="space-y-3">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <GraduationCap className="w-4 h-4 text-indigo-600" />
-                <CardTitle className="text-sm">In-Progress Goals</CardTitle>
-              </div>
-              <Link href="/learning" className="text-xs font-semibold text-indigo-600 hover:underline">
-                View Goals →
-              </Link>
-            </CardHeader>
-            <CardContent>
-              {learningGoals.length === 0 ? (
-                <p className="text-xs text-slate-400 italic">No active learning goals in progress.</p>
-              ) : (
-                <div className="space-y-4">
-                  {learningGoals.map((goal) => (
-                    <div key={goal.id} className="space-y-1.5 text-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-slate-900 truncate">{goal.title}</span>
-                        <span className="font-mono font-bold text-indigo-600 shrink-0 ml-2">
-                          {goal.progressRollup}%
-                        </span>
-                      </div>
-                      <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
-                        <div
-                          className="h-full bg-indigo-600 rounded-full transition-all duration-300"
-                          style={{ width: `${goal.progressRollup}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
               )}
             </CardContent>
           </Card>

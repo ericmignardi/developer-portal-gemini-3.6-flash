@@ -8,9 +8,7 @@ import {
   FolderGit2,
   CheckSquare,
   Code2,
-  Bookmark,
   BookOpen,
-  GraduationCap,
   ChevronLeft,
   ChevronRight,
   Plus,
@@ -26,9 +24,7 @@ const NAV_ITEMS = [
   { label: "Projects", href: "/projects", icon: FolderGit2 },
   { label: "Tasks", href: "/tasks", icon: CheckSquare },
   { label: "Snippets", href: "/snippets", icon: Code2 },
-  { label: "Resources", href: "/resources", icon: Bookmark },
   { label: "Journal", href: "/journal", icon: BookOpen },
-  { label: "Learning", href: "/learning", icon: GraduationCap },
 ];
 
 export function Sidebar() {

@@ -14,7 +14,7 @@ import { CodeHighlight } from "@/components/ui/CodeHighlight";
 import { MarkdownRenderer } from "@/components/ui/MarkdownRenderer";
 import { ProjectModal } from "@/components/projects/ProjectModal";
 import { useUIStore } from "@/store/useUIStore";
-import { formatDate, extractDomain } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import { GithubIcon } from "@/components/ui/GithubIcon";
 import {
   ArrowLeft,
@@ -24,7 +24,6 @@ import {
   Layers,
   CheckSquare,
   Code2,
-  Bookmark,
   BookOpen,
   Edit2,
   Trash2,
@@ -56,7 +55,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<PagePara
   const [project, setProject] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"overview" | "environments" | "tasks" | "snippets" | "resources" | "journal">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "environments" | "tasks" | "snippets" | "journal">("overview");
 
   // GitHub integration state
   const [githubData, setGithubData] = useState<any | null>(null);
@@ -98,7 +97,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<PagePara
         setGithubData(data);
       }
     } catch {
-      // Non-fatal per PRD §7.13
+      // Non-fatal
     } finally {
       setGithubLoading(false);
     }
@@ -170,7 +169,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<PagePara
     { id: "environments", label: "Environments", icon: Layers, count: project.environments?.length || 0 },
     { id: "tasks", label: "Tasks", icon: CheckSquare, count: project.tasks?.length || 0 },
     { id: "snippets", label: "Snippets", icon: Code2, count: project.snippets?.length || 0 },
-    { id: "resources", label: "Resources", icon: Bookmark, count: project.resources?.length || 0 },
     { id: "journal", label: "Journal", icon: BookOpen, count: project.journalEntries?.length || 0 },
   ];
 
@@ -345,7 +343,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<PagePara
               </CardContent>
             </Card>
 
-            {/* GitHub Integration Widget (PRD §7.13) */}
+            {/* GitHub Integration Widget */}
             {project.repoUrl && (
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
@@ -455,10 +453,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<PagePara
                   <span className="text-slate-500">Snippets</span>
                   <span className="font-semibold text-slate-900">{project.snippets?.length || 0}</span>
                 </div>
-                <div className="flex justify-between py-1.5 border-b border-slate-100">
-                  <span className="text-slate-500">Resources</span>
-                  <span className="font-semibold text-slate-900">{project.resources?.length || 0}</span>
-                </div>
                 <div className="flex justify-between py-1.5">
                   <span className="text-slate-500">Journal Entries</span>
                   <span className="font-semibold text-slate-900">{project.journalEntries?.length || 0}</span>
@@ -542,42 +536,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<PagePara
                 <div key={s.id} className="space-y-2">
                   <h4 className="text-xs font-semibold text-slate-900">{s.title}</h4>
                   <CodeHighlight code={s.code} language={s.language} />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {activeTab === "resources" && (
-        <div className="space-y-4">
-          <h3 className="text-base font-bold text-slate-900">Project Bookmarks & Resources</h3>
-          {project.resources?.length === 0 ? (
-            <p className="text-xs text-slate-400 italic p-6 text-center border border-dashed rounded-xl">
-              No resources associated with this project.
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 gap-2.5">
-              {project.resources.map((r: any) => (
-                <div
-                  key={r.id}
-                  className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 bg-white text-xs"
-                >
-                  <div>
-                    <a
-                      href={r.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-semibold text-indigo-600 hover:underline flex items-center gap-1"
-                    >
-                      {r.title}
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                    <span className="text-[11px] font-mono text-slate-400">{extractDomain(r.url)}</span>
-                  </div>
-                  <Badge variant="outline" size="sm">
-                    {r.type}
-                  </Badge>
                 </div>
               ))}
             </div>

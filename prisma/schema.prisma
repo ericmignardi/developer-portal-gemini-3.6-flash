@@ -42,22 +42,6 @@ enum TaskPriority {
   URGENT
 }
 
-enum ResourceType {
-  ARTICLE
-  DOCS
-  VIDEO
-  TOOL
-  REPO
-  OTHER
-}
-
-enum LearningStatus {
-  NOT_STARTED
-  IN_PROGRESS
-  COMPLETED
-  ABANDONED
-}
-
 model Project {
   id          String        @id @default(cuid())
   name        String
@@ -76,7 +60,6 @@ model Project {
   environments   Environment[]
   tasks          Task[]
   snippets       Snippet[]
-  resources      Resource[]
   journalEntries JournalEntry[]
   tags           TagOnProject[]
 
@@ -140,25 +123,6 @@ model Snippet {
   @@index([isFavorite])
 }
 
-model Resource {
-  id          String       @id @default(cuid())
-  title       String
-  url         String
-  description String?      @db.Text
-  type        ResourceType @default(OTHER)
-  projectId   String?
-  project     Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  isRead      Boolean      @default(false)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-
-  tags TagOnResource[]
-
-  @@index([projectId])
-  @@index([type])
-  @@index([isRead])
-}
-
 model JournalEntry {
   id        String   @id @default(cuid())
   title     String?
@@ -175,37 +139,6 @@ model JournalEntry {
   @@index([entryDate])
 }
 
-model LearningGoal {
-  id          String         @id @default(cuid())
-  title       String
-  description String?        @db.Text
-  targetDate  DateTime?
-  status      LearningStatus @default(NOT_STARTED)
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-
-  courses Course[]
-
-  @@index([status])
-}
-
-model Course {
-  id              String          @id @default(cuid())
-  title           String
-  provider        String?
-  url             String?
-  status          LearningStatus  @default(NOT_STARTED)
-  progressPercent Int             @default(0)
-  learningGoalId  String?
-  learningGoal    LearningGoal?   @relation(fields: [learningGoalId], references: [id], onDelete: SetNull)
-  notes           String?         @db.Text
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-
-  @@index([learningGoalId])
-  @@index([status])
-}
-
 model Tag {
   id    String @id @default(cuid())
   name  String @unique
@@ -213,7 +146,6 @@ model Tag {
 
   projects       TagOnProject[]
   snippets       TagOnSnippet[]
-  resources      TagOnResource[]
   journalEntries TagOnJournalEntry[]
 }
 
@@ -233,15 +165,6 @@ model TagOnSnippet {
   tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([snippetId, tagId])
-}
-
-model TagOnResource {
-  resourceId String
-  tagId      String
-  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
-  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@id([resourceId, tagId])
 }
 
 model TagOnJournalEntry {
