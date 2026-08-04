@@ -49,7 +49,6 @@ export async function GET(req: NextRequest) {
           select: {
             tasks: true,
             environments: true,
-            snippets: true,
             journalEntries: true,
           },
         },

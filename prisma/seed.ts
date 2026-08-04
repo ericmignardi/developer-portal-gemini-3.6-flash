@@ -5,11 +5,9 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Cleaning existing database...");
   await prisma.tagOnProject.deleteMany();
-  await prisma.tagOnSnippet.deleteMany();
   await prisma.tagOnJournalEntry.deleteMany();
   await prisma.environment.deleteMany();
   await prisma.task.deleteMany();
-  await prisma.snippet.deleteMany();
   await prisma.journalEntry.deleteMany();
   await prisma.tag.deleteMany();
   await prisma.project.deleteMany();
@@ -285,183 +283,6 @@ async function main() {
     });
   }
 
-  console.log("Creating Snippets...");
-  const snippetsData = [
-    {
-      title: "Prisma Singleton Client for Next.js App Router",
-      description: "Prevents multiple Prisma Client instances during HMR in development.",
-      language: "typescript",
-      code: `import { PrismaClient } from "@prisma/client";
-
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-};
-
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
-  });
-
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;`,
-      projectId: p1.id,
-      isFavorite: true,
-      tags: [tags["typescript"].id, tags["prisma"].id, tags["nextjs"].id],
-    },
-    {
-      title: "Clean Slugify Utility Function",
-      description: "Converts strings into URL-safe clean slugs for Prisma models.",
-      language: "typescript",
-      code: `export function slugify(text: string): string {
-  return text
-    .toString()
-    .toLowerCase()
-    .trim()
-    .replace(/\\s+/g, "-")
-    .replace(/[^\\w\\-]+/g, "")
-    .replace(/\\-\\-+/g, "-")
-    .replace(/^-+/, "")
-    .replace(/-+$/, "");
-}`,
-      projectId: p1.id,
-      isFavorite: true,
-      tags: [tags["typescript"].id],
-    },
-    {
-      title: "Next.js App Router API Error Handler Wrapper",
-      description: "Standardized API response wrapper with Zod validation error formatting.",
-      language: "typescript",
-      code: `import { NextResponse } from "next/server";
-import { ZodError } from "zod";
-
-export function handleApiError(error: unknown) {
-  if (error instanceof ZodError) {
-    const fields: Record<string, string[]> = {};
-    error.errors.forEach((err) => {
-      const path = err.path.join(".");
-      if (!fields[path]) fields[path] = [];
-      fields[path].push(err.message);
-    });
-    return NextResponse.json({ error: "Validation failed", fields }, { status: 400 });
-  }
-
-  console.error("Unhandled API Error:", error);
-  return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-}`,
-      projectId: p2.id,
-      isFavorite: true,
-      tags: [tags["typescript"].id, tags["nextjs"].id],
-    },
-    {
-      title: "PostgreSQL Database Branch Cleanup Query",
-      description: "SQL query to find and terminate inactive connections before branch dropping.",
-      language: "sql",
-      code: `SELECT pg_terminate_backend(pg_stat_activity.pid)
-FROM pg_stat_activity
-WHERE pg_stat_activity.datname = 'target_database_name'
-  AND pid <> pg_backend_pid();`,
-      projectId: p1.id,
-      isFavorite: false,
-      tags: [tags["postgres"].id, tags["neon"].id],
-    },
-    {
-      title: "TailwindCSS Custom Scrollbar Styling",
-      description: "Clean minimalist scrollbar classes for dark/light themes.",
-      language: "css",
-      code: `/* Custom scrollbar utility */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 9999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}`,
-      projectId: p4.id,
-      isFavorite: false,
-      tags: [tags["tailwind"].id],
-    },
-    {
-      title: "Docker Compose PostgreSQL 16 Template",
-      description: "Quick startup config for Postgres with named data volume.",
-      language: "yaml",
-      code: `services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: dev_postgres
-    restart: always
-    environment:
-      POSTGRES_USER: dev_user
-      POSTGRES_PASSWORD: dev_password
-      POSTGRES_DB: dev_db
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-volumes:
-  postgres_data:`,
-      isFavorite: true,
-      tags: [tags["postgres"].id],
-    },
-    {
-      title: "Zustand Persisted Store Setup",
-      description: "Client-side state persistence with localStorage hydration safety.",
-      language: "typescript",
-      code: `import { create } from "zustand";
-import { persist } from "zustand/middleware";
-
-interface UIState {
-  sidebarOpen: boolean;
-  toggleSidebar: () => void;
-}
-
-export const useUIStore = create<UIState>()(
-  persist(
-    (set) => ({
-      sidebarOpen: true,
-      toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
-    }),
-    { name: "ui-storage" }
-  )
-);`,
-      isFavorite: false,
-      tags: [tags["react"].id, tags["typescript"].id],
-    },
-    {
-      title: "Git Alias for Clean Interactive Rebase",
-      description: "Useful terminal shortcuts for daily workflow.",
-      language: "bash",
-      code: `# Add to ~/.zshrc or ~/.bashrc
-alias glog="git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
-alias gpf="git push --force-with-lease"
-alias gcb="git checkout -b"`,
-      isFavorite: false,
-      tags: [tags["vercel"].id],
-    },
-  ];
-
-  for (const s of snippetsData) {
-    const { tags: snippetTagIds, ...rest } = s;
-    await prisma.snippet.create({
-      data: {
-        ...rest,
-        tags: {
-          create: snippetTagIds.map((tagId) => ({ tagId })),
-        },
-      },
-    });
-  }
-
   console.log("Creating Journal Entries...");
   const journalData = [
     {
@@ -538,7 +359,7 @@ Super clean setup and noticeably faster build times!`,
       title: "Reflections on Personal Developer Portal Architecture",
       content: `Designing Atlas as a single-user personal developer portal running on localhost.
 
-Key architectural goal: **Kill the context switching cost.** Having projects, environments, open tasks, snippets, and dev logs in one single view is already making daily client work significantly smoother.`,
+Key architectural goal: **Kill the context switching cost.** Having projects, environments, open tasks, and dev logs in one single view is already making daily client work significantly smoother.`,
       entryDate: new Date("2026-08-03T08:00:00Z"),
       tags: [tags["typescript"].id, tags["nextjs"].id],
     },

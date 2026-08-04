@@ -19,10 +19,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         tasks: {
           orderBy: [{ status: "asc" }, { priority: "desc" }, { createdAt: "desc" }],
         },
-        snippets: {
-          include: { tags: { include: { tag: true } } },
-          orderBy: { createdAt: "desc" },
-        },
         journalEntries: {
           include: { tags: { include: { tag: true } } },
           orderBy: { entryDate: "desc" },
@@ -40,7 +36,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return jsonResponse({
       ...project,
       tags: project.tags.map((t) => t.tag),
-      snippets: project.snippets.map((s) => ({ ...s, tags: s.tags.map((t) => t.tag) })),
       journalEntries: project.journalEntries.map((j) => ({ ...j, tags: j.tags.map((t) => t.tag) })),
     });
   } catch (error) {

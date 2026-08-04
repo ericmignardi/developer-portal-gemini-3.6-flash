@@ -1,6 +1,6 @@
 # Atlas — Personal Developer Portal
 
-Atlas is a personal developer portal designed for freelance and contract developers running multiple client applications concurrently. It consolidates scattered Vercel preview deployments, Neon database branches, tasks, code snippets, and dev journal entries into a single local dashboard on localhost.
+Atlas is a personal developer portal designed for freelance and contract developers running multiple client applications concurrently. It consolidates scattered Vercel preview deployments, Neon database branches, tasks, and dev journal entries into a single local dashboard on localhost.
 
 ## Technology Stack
 
@@ -41,7 +41,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## Architectural Decisions
 
 1. **Explicit Many-to-Many Join Tables**:
-   - `Tag` is linked across `Project`, `Snippet`, and `JournalEntry` via explicit join models (`TagOnProject`, `TagOnSnippet`, `TagOnJournalEntry`) rather than string arrays. This ensures case-insensitive deduplication, strict referential integrity, and efficient relational querying.
+   - `Tag` is linked across `Project` and `JournalEntry` via explicit join models (`TagOnProject`, `TagOnJournalEntry`) rather than string arrays. This ensures case-insensitive deduplication, strict referential integrity, and efficient relational querying.
 
 2. **REST API Contract & Validation Scoping**:
    - All REST routes under `/api/*` conform strictly to requirements. Inputs are parsed through Zod validation schemas in `lib/validations/`, returning standardized JSON responses `{ error: string, fields?: Record<string, string[]> }` with `400 Bad Request` on invalid payloads.
@@ -65,7 +65,6 @@ gemini/
 │   ├── api/                # REST API route handlers (/api/projects, /api/tasks, etc.)
 │   ├── projects/           # Project list & detail views (/projects, /projects/[slug])
 │   ├── tasks/              # Task board and list view (/tasks)
-│   ├── snippets/           # Code snippet library (/snippets)
 │   ├── journal/            # Dev log entries (/journal, /journal/[id])
 │   ├── globals.css         # Base styles & light scrollbar configuration
 │   ├── layout.tsx          # Root shell layout with persistent sidebar & header
@@ -77,7 +76,6 @@ gemini/
 │   ├── projects/           # Project management modals & components
 │   ├── environments/       # Environment grouping & copy-to-clipboard tools
 │   ├── tasks/              # Task modals & card components
-│   ├── snippets/           # Snippet modal components
 │   └── journal/            # Journal modal components
 ├── lib/
 │   ├── prisma.ts           # Singleton Prisma Client for HMR

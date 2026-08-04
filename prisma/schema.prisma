@@ -59,7 +59,6 @@ model Project {
 
   environments   Environment[]
   tasks          Task[]
-  snippets       Snippet[]
   journalEntries JournalEntry[]
   tags           TagOnProject[]
 
@@ -104,25 +103,6 @@ model Task {
   @@index([dueDate])
 }
 
-model Snippet {
-  id          String   @id @default(cuid())
-  title       String
-  description String?  @db.Text
-  language    String   @default("typescript")
-  code        String   @db.Text
-  projectId   String?
-  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  isFavorite  Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  tags TagOnSnippet[]
-
-  @@index([projectId])
-  @@index([language])
-  @@index([isFavorite])
-}
-
 model JournalEntry {
   id        String   @id @default(cuid())
   title     String?
@@ -145,7 +125,6 @@ model Tag {
   color String
 
   projects       TagOnProject[]
-  snippets       TagOnSnippet[]
   journalEntries TagOnJournalEntry[]
 }
 
@@ -156,15 +135,6 @@ model TagOnProject {
   tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([projectId, tagId])
-}
-
-model TagOnSnippet {
-  snippetId String
-  tagId     String
-  snippet   Snippet @relation(fields: [snippetId], references: [id], onDelete: Cascade)
-  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@id([snippetId, tagId])
 }
 
 model TagOnJournalEntry {

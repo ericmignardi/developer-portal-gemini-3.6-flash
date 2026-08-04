@@ -7,7 +7,6 @@ import {
   LayoutDashboard,
   FolderGit2,
   CheckSquare,
-  Code2,
   BookOpen,
   ChevronLeft,
   ChevronRight,
@@ -23,7 +22,6 @@ const NAV_ITEMS = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
   { label: "Projects", href: "/projects", icon: FolderGit2 },
   { label: "Tasks", href: "/tasks", icon: CheckSquare },
-  { label: "Snippets", href: "/snippets", icon: Code2 },
   { label: "Journal", href: "/journal", icon: BookOpen },
 ];
 

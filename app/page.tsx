@@ -15,7 +15,6 @@ import { formatDate, formatRelativeTime } from "@/lib/utils";
 import {
   FolderGit2,
   CheckSquare,
-  Code2,
   BookOpen,
   AlertCircle,
   Clock,
@@ -44,7 +43,6 @@ export default function DashboardPage() {
   const [counts, setCounts] = useState({
     activeProjects: 0,
     openTasks: 0,
-    snippets: 0,
     journalEntries: 0,
   });
   const [recentJournal, setRecentJournal] = useState<any | null>(null);
@@ -57,26 +55,23 @@ export default function DashboardPage() {
       setIsLoading(true);
       setError(null);
 
-      const [pRes, tRes, sRes, jRes] = await Promise.all([
+      const [pRes, tRes, jRes] = await Promise.all([
         fetch("/api/projects"),
         fetch("/api/tasks"),
-        fetch("/api/snippets"),
         fetch("/api/journal"),
       ]);
 
-      if (!pRes.ok || !tRes.ok || !sRes.ok || !jRes.ok) {
+      if (!pRes.ok || !tRes.ok || !jRes.ok) {
         throw new Error("Failed to load dashboard statistics");
       }
 
       const allProjects = await pRes.json();
       const allTasks = await tRes.json();
-      const allSnippets = await sRes.json();
       const allJournal = await jRes.json();
 
       if (
         allProjects.length === 0 &&
         allTasks.length === 0 &&
-        allSnippets.length === 0 &&
         allJournal.length === 0
       ) {
         setIsFreshDb(true);
@@ -95,7 +90,6 @@ export default function DashboardPage() {
       setCounts({
         activeProjects: activeCount,
         openTasks: openTaskCount,
-        snippets: allSnippets.length,
         journalEntries: allJournal.length,
       });
 
@@ -183,7 +177,7 @@ export default function DashboardPage() {
         <EmptyState
           icon={<FolderGit2 className="w-8 h-8 text-indigo-600" />}
           title="Welcome to Atlas Developer Portal"
-          description="Your database is fresh and unpopulated. Start by creating your first client project to track environments, tasks, and snippets."
+          description="Your database is fresh and unpopulated. Start by creating your first client project to track environments and tasks."
           actionLabel="Create First Project"
           onAction={() => {
             window.location.href = "/projects";
@@ -196,7 +190,7 @@ export default function DashboardPage() {
   return (
     <PageWrapper className="space-y-6">
       {/* Top Banner / Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="flex items-center gap-4 p-4 border-slate-200">
           <div className="p-3 rounded-xl bg-indigo-50 text-indigo-600 shrink-0">
             <FolderGit2 className="w-5 h-5" />
@@ -218,18 +212,6 @@ export default function DashboardPage() {
               {counts.openTasks}
             </span>
             <p className="text-xs text-slate-500 font-medium">Open Tasks</p>
-          </div>
-        </Card>
-
-        <Card className="flex items-center gap-4 p-4 border-slate-200">
-          <div className="p-3 rounded-xl bg-cyan-50 text-cyan-600 shrink-0">
-            <Code2 className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="text-2xl font-bold text-slate-900 font-mono tracking-tight">
-              {counts.snippets}
-            </span>
-            <p className="text-xs text-slate-500 font-medium">Saved Snippets</p>
           </div>
         </Card>
 

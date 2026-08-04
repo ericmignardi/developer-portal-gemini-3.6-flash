@@ -10,7 +10,6 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { LoadingState } from "@/components/states/LoadingState";
 import { ErrorState } from "@/components/states/ErrorState";
 import { EnvironmentList } from "@/components/environments/EnvironmentList";
-import { CodeHighlight } from "@/components/ui/CodeHighlight";
 import { MarkdownRenderer } from "@/components/ui/MarkdownRenderer";
 import { ProjectModal } from "@/components/projects/ProjectModal";
 import { useUIStore } from "@/store/useUIStore";
@@ -23,7 +22,6 @@ import {
   Calendar,
   Layers,
   CheckSquare,
-  Code2,
   BookOpen,
   Edit2,
   Trash2,
@@ -55,7 +53,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<PagePara
   const [project, setProject] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"overview" | "environments" | "tasks" | "snippets" | "journal">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "environments" | "tasks" | "journal">("overview");
 
   // GitHub integration state
   const [githubData, setGithubData] = useState<any | null>(null);
@@ -168,7 +166,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<PagePara
     { id: "overview", label: "Overview", icon: Layers, count: null },
     { id: "environments", label: "Environments", icon: Layers, count: project.environments?.length || 0 },
     { id: "tasks", label: "Tasks", icon: CheckSquare, count: project.tasks?.length || 0 },
-    { id: "snippets", label: "Snippets", icon: Code2, count: project.snippets?.length || 0 },
     { id: "journal", label: "Journal", icon: BookOpen, count: project.journalEntries?.length || 0 },
   ];
 
@@ -449,10 +446,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<PagePara
                     {project.tasks?.filter((t: any) => t.status !== "DONE").length || 0}
                   </span>
                 </div>
-                <div className="flex justify-between py-1.5 border-b border-slate-100">
-                  <span className="text-slate-500">Snippets</span>
-                  <span className="font-semibold text-slate-900">{project.snippets?.length || 0}</span>
-                </div>
                 <div className="flex justify-between py-1.5">
                   <span className="text-slate-500">Journal Entries</span>
                   <span className="font-semibold text-slate-900">{project.journalEntries?.length || 0}</span>
@@ -516,26 +509,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<PagePara
                   <Badge variant={task.status === "DONE" ? "success" : "outline"} size="sm">
                     {task.status}
                   </Badge>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {activeTab === "snippets" && (
-        <div className="space-y-4">
-          <h3 className="text-base font-bold text-slate-900">Project Code Snippets</h3>
-          {project.snippets?.length === 0 ? (
-            <p className="text-xs text-slate-400 italic p-6 text-center border border-dashed rounded-xl">
-              No snippets associated with this project.
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {project.snippets.map((s: any) => (
-                <div key={s.id} className="space-y-2">
-                  <h4 className="text-xs font-semibold text-slate-900">{s.title}</h4>
-                  <CodeHighlight code={s.code} language={s.language} />
                 </div>
               ))}
             </div>

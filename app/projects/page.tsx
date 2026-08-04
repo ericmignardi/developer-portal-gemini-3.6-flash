@@ -41,7 +41,6 @@ interface ProjectItem {
   _count?: {
     environments: number;
     tasks: number;
-    snippets: number;
     journalEntries: number;
   };
 }
